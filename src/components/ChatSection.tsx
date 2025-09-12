@@ -48,7 +48,7 @@ const ChatSection = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/pokemon-chat', {
+      const response = await fetch('/functions/v1/pokemon-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
