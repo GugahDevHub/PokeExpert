@@ -59,9 +59,9 @@ const HeroSection = () => {
 
         {/* Main title */}
         <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
-          Seu Especialista 
+          PokéExpert
           <span className="block bg-gradient-to-r from-electric to-secondary bg-clip-text text-transparent">
-            Pokémon
+            AI Specialist
           </span>
         </h1>
 

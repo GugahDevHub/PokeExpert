@@ -66,9 +66,9 @@ const FooterSection = () => {
         <div className="border-t border-white/20 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="mb-4 md:mb-0">
-              <p className="text-lg font-bold mb-2">🔥 Pokémon Expert AI</p>
+              <p className="text-lg font-bold mb-2">🔥 PokéExpert</p>
               <p className="text-sm opacity-80">
-                Seu assistente especializado em tudo sobre Pokémon
+                Criado em 2025 por Gustavo (GugahDevHub) com amor e dedicação para ajudar você com qualquer dúvida sobre o mundo Pokémon. Inspirado pelo desejo de estar sempre presente para sua esposa e para todos os fãs de Pokémon.
               </p>
             </div>
             
@@ -87,7 +87,7 @@ const FooterSection = () => {
           
           <div className="mt-6 pt-6 border-t border-white/10 text-center">
             <p className="text-sm opacity-70">
-              © 2024 Pokémon Expert AI. Feito com React, TypeScript e muito amor por Pokémon.
+              © 2025 PokéExpert by Gustavo (GugahDevHub). Feito com React, TypeScript e muito amor por Pokémon.
             </p>
             <p className="text-xs opacity-60 mt-2">
               Pokémon é marca registrada da The Pokémon Company. Este projeto é não-oficial e educativo.

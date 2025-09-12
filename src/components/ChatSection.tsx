@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Send, Bot, User, Settings } from "lucide-react";
+import { Send, Bot, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import pikachuAvatar from "@/assets/pikachu-avatar.jpg";
 
@@ -18,61 +18,22 @@ const ChatSection = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: 'Olá! Sou seu especialista Pokémon! 🔥⚡ Posso ajudar com estatísticas, movimentos, evoluções, estratégias competitivas, lore, jogos, anime, TCG e muito mais! Qual Pokémon desperta sua curiosidade hoje?',
+      content: 'Olá! Sou o PokéExpert! 🔥⚡ Posso ajudar com estatísticas, movimentos, evoluções, estratégias competitivas, lore, jogos, anime, TCG e muito mais! Qual Pokémon desperta sua curiosidade hoje?',
       isUser: false,
       timestamp: new Date(),
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKey, setApiKey] = useState('');
-  const [showApiInput, setShowApiInput] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const savedApiKey = localStorage.getItem('gemini-api-key');
-    if (savedApiKey) {
-      setApiKey(savedApiKey);
-    } else {
-      setShowApiInput(true);
-    }
-  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const saveApiKey = () => {
-    if (!apiKey.trim()) {
-      toast({
-        title: "API Key necessária",
-        description: "Por favor, insira sua chave API do Gemini 2.5 Flash",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    localStorage.setItem('gemini-api-key', apiKey);
-    setShowApiInput(false);
-    toast({
-      title: "API Key salva!",
-      description: "Agora você pode conversar comigo sobre Pokémon!",
-    });
-  };
-
   const sendMessage = async () => {
     if (!inputValue.trim()) return;
-    
-    if (!apiKey) {
-      setShowApiInput(true);
-      toast({
-        title: "Configure sua API Key",
-        description: "Insira sua chave API do Gemini para continuar",
-        variant: "destructive",
-      });
-      return;
-    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -82,46 +43,31 @@ const ChatSection = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageToSend = inputValue;
     setInputValue('');
     setIsLoading(true);
 
     try {
-      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=' + apiKey, {
+      const response = await fetch('/api/pokemon-chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contents: [{
-            parts: [{
-              text: `Você é um especialista apaixonado por Pokémon com conhecimento enciclopédico. Responda de forma amigável, educativa e detalhada. Seja proativo sugerindo dicas extras relevantes. Sua especialidade inclui: estatísticas, movimentos, evoluções, estratégias competitivas, lore, jogos, anime, TCG e mercadoria. Use emojis relacionados a Pokémon quando apropriado. Pergunta do usuário: ${inputValue}`
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            topK: 1,
-            topP: 1,
-            maxOutputTokens: 2048,
-          },
-          safetySettings: [
-            {
-              category: "HARM_CATEGORY_HARASSMENT",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            },
-            {
-              category: "HARM_CATEGORY_HATE_SPEECH",
-              threshold: "BLOCK_MEDIUM_AND_ABOVE"
-            }
-          ]
+          message: messageToSend
         }),
       });
 
       const data = await response.json();
       
-      if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro na comunicação com o servidor');
+      }
+      
+      if (data.response) {
         const botMessage: Message = {
           id: Date.now().toString(),
-          content: data.candidates[0].content.parts[0].text,
+          content: data.response,
           isUser: false,
           timestamp: new Date(),
         };
@@ -133,7 +79,7 @@ const ChatSection = () => {
       console.error('Erro ao enviar mensagem:', error);
       toast({
         title: "Erro na comunicação",
-        description: "Verifique sua conexão e API Key. Tente novamente.",
+        description: "Não foi possível se conectar ao PokéExpert. Tente novamente em alguns instantes.",
         variant: "destructive",
       });
     } finally {
@@ -148,44 +94,6 @@ const ChatSection = () => {
     }
   };
 
-  if (showApiInput) {
-    return (
-      <section id="chat-section" className="py-20 px-6 bg-gradient-to-b from-background to-muted/30">
-        <div className="container mx-auto max-w-md">
-          <Card className="p-8 text-center">
-            <div className="mb-6">
-              <img 
-                src={pikachuAvatar} 
-                alt="Pokemon Expert" 
-                className="w-20 h-20 rounded-full mx-auto mb-4"
-              />
-              <h3 className="text-2xl font-bold mb-2">Configure sua API Key</h3>
-              <p className="text-muted-foreground">
-                Insira sua chave API gratuita do Gemini 2.5 Flash para começar a conversar!
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <Input
-                type="password"
-                placeholder="Sua API Key do Gemini"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && saveApiKey()}
-              />
-              <Button onClick={saveApiKey} className="w-full">
-                <Settings className="w-4 h-4 mr-2" />
-                Salvar e Continuar
-              </Button>
-              <p className="text-xs text-muted-foreground">
-                Gratuito em: <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" className="text-primary underline">Google AI Studio</a>
-              </p>
-            </div>
-          </Card>
-        </div>
-      </section>
-    );
-  }
 
   return (
     <section id="chat-section" className="py-20 px-6 bg-gradient-to-b from-background to-muted/30">
@@ -261,19 +169,10 @@ const ChatSection = () => {
                 <Send className="w-5 h-5" />
               </Button>
             </div>
-            <div className="flex justify-between items-center mt-3">
-              <p className="text-sm text-muted-foreground">
-                Pressione Enter para enviar
+            <div className="mt-3">
+              <p className="text-sm text-muted-foreground text-center">
+                Pressione Enter para enviar sua pergunta ao PokéExpert
               </p>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setShowApiInput(true)}
-                className="text-xs"
-              >
-                <Settings className="w-3 h-3 mr-1" />
-                Alterar API Key
-              </Button>
             </div>
           </div>
         </Card>
