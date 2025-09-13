@@ -68,7 +68,22 @@ const ChatSection = () => {
         }),
       });
 
-      const data = await response.json();
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+      
+      // Get response as text first to debug
+      const responseText = await response.text();
+      console.log('Raw response:', responseText);
+      
+      // Try to parse as JSON
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (jsonError) {
+        console.error('JSON parsing failed:', jsonError);
+        console.error('Response was:', responseText);
+        throw new Error('Resposta inválida do servidor. Verifique se a edge function está rodando.');
+      }
       
       if (!response.ok) {
         // Handle specific error types
