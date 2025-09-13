@@ -58,10 +58,13 @@ const ChatSection = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch('/functions/v1/pokemon-chat', {
+      const isLocalhost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+      const functionUrl = isLocalhost ? 'http://localhost:54321/functions/v1/pokemon-chat' : '/functions/v1/pokemon-chat';
+      const response = await fetch(functionUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json'
         },
         body: JSON.stringify({
           message: messageToSend
