@@ -34,6 +34,16 @@ const ChatSection = () => {
 
   const sendMessage = async () => {
     if (!inputValue.trim()) return;
+    
+    // Client-side validation
+    if (inputValue.length > 2000) {
+      toast({
+        title: "Mensagem muito longa",
+        description: "Sua mensagem deve ter no máximo 2000 caracteres. Tente ser mais conciso.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -61,6 +71,12 @@ const ChatSection = () => {
       const data = await response.json();
       
       if (!response.ok) {
+        // Handle specific error types
+        if (response.status === 429) {
+          throw new Error('Você está fazendo muitas perguntas! Aguarde um momento antes de tentar novamente.');
+        } else if (response.status === 400) {
+          throw new Error(data.error || 'Sua mensagem contém conteúdo inválido. Tente reformular.');
+        }
         throw new Error(data.error || 'Erro na comunicação com o servidor');
       }
       
@@ -79,7 +95,7 @@ const ChatSection = () => {
       console.error('Erro ao enviar mensagem:', error);
       toast({
         title: "Erro na comunicação",
-        description: "Não foi possível se conectar ao PokéExpert. Tente novamente em alguns instantes.",
+        description: error instanceof Error ? error.message : "Não foi possível se conectar ao PokéExpert. Tente novamente em alguns instantes.",
         variant: "destructive",
       });
     } finally {
@@ -169,9 +185,16 @@ const ChatSection = () => {
                 <Send className="w-5 h-5" />
               </Button>
             </div>
-            <div className="mt-3">
-              <p className="text-sm text-muted-foreground text-center">
+            <div className="mt-3 flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">
                 Pressione Enter para enviar sua pergunta ao PokéExpert
+              </p>
+              <p className={`text-sm ${
+                inputValue.length > 1800 ? 'text-destructive' : 
+                inputValue.length > 1500 ? 'text-warning' : 
+                'text-muted-foreground'
+              }`}>
+                {inputValue.length}/2000
               </p>
             </div>
           </div>
